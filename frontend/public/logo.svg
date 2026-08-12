@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 450" width="100%" height="100%">
+  <!-- Emblem Group (Top Centered) -->
+  <g transform="translate(45, 10) scale(0.62)">
+    <!-- Outer Navy Circular Arc & Wave (#073B68) -->
+    <path fill="#073B68" d="
+      M 250,20 
+      A 150,150 0 0,0 100,170 
+      C 100,240 140,290 190,310 
+      C 150,290 135,250 145,210 
+      C 155,170 195,150 235,165 
+      C 265,175 275,205 260,230 
+      C 245,255 220,265 195,285 
+      C 165,305 135,335 155,365 
+      C 185,385 225,385 265,370 
+      C 305,355 330,325 345,290 
+      C 325,310 295,325 265,320 
+      C 225,315 200,290 230,270 
+      C 260,250 290,230 295,195 
+      C 300,160 270,125 225,130 
+      C 175,135 145,185 155,235 
+      C 135,195 145,145 180,110 
+      C 215,75 265,65 310,80 
+      C 290,40 250,20 250,20 Z
+    "/>
+
+    <!-- Dynamic Ocean Wave Swooshes in Deep Navy (#073B68) -->
+    <path fill="#073B68" d="
+      M 160,300 
+      C 200,250 260,260 275,310 
+      C 240,280 200,285 175,325 
+      C 210,305 255,305 285,340 
+      C 245,325 205,335 180,360 
+      C 215,355 255,365 295,375 
+      C 240,365 190,355 160,300 Z
+    "/>
+
+    <!-- Turquoise/Teal Shield forming 'G' (#10A9A5) -->
+    <path fill="none" stroke="#10A9A5" stroke-width="20" stroke-linecap="round" stroke-linejoin="round" d="
+      M 215,145 
+      L 290,105 
+      L 365,145 
+      L 365,240 
+      C 365,305 315,355 255,370
+    "/>
+    
+    <!-- Horizontal Crossbar of 'G' in Teal (#10A9A5) -->
+    <path fill="none" stroke="#10A9A5" stroke-width="20" stroke-linecap="round" stroke-linejoin="round" d="
+      M 295,240 
+      L 365,240
+    "/>
+  </g>
+
+  <!-- Typography Group (Middle & Bottom Centered) -->
+  <!-- "SEA" in Navy (#073B68) -->
+  <text x="200" y="335" font-family="'Inter', 'Arial Black', -apple-system, sans-serif" font-weight="900" font-size="72" fill="#073B68" text-anchor="middle" letter-spacing="14">SEA</text>
+  
+  <!-- Wave Accent under 'A' in SEA (#10A9A5) -->
+  <path fill="#10A9A5" d="
+    M 285,338 
+    C 298,338 308,344 318,344 
+    C 328,344 338,338 348,338 
+    C 338,342 328,348 318,348 
+    C 308,348 298,342 285,338 Z
+  "/>
+
+  <!-- "— GUARDIANS —" in Teal (#10A9A5) -->
+  <text x="200" y="390" font-family="'Inter', sans-serif" font-weight="800" font-size="24" fill="#10A9A5" text-anchor="middle" letter-spacing="10">— GUARDIANS —</text>
+</svg>

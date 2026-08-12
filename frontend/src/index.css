@@ -1,0 +1,48 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-gradient-to-br from-[#F5FAFB] via-[#EDF6F8] to-[#F0FAF9] text-slate-800 antialiased min-h-screen;
+  }
+  ::selection {
+    background-color: #A2F3F0;
+    color: #073B68;
+  }
+}
+
+/* Custom modern ice-blue scrollbar */
+::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+
+::-webkit-scrollbar-track {
+  background: #EDF6F8;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #CBD5E1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #10A9A5;
+}
+
+/* Pulse animation for live turquoise/teal status dot */
+@keyframes pulseTeal {
+  0%, 100% {
+    opacity: 1;
+    box-shadow: 0 0 0 0 rgba(16, 169, 165, 0.4);
+  }
+  50% {
+    opacity: 0.8;
+    box-shadow: 0 0 0 6px rgba(16, 169, 165, 0);
+  }
+}
+
+.pulse-green, .pulse-teal {
+  animation: pulseTeal 2.5s infinite ease-in-out;
+}
