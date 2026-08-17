@@ -7,8 +7,11 @@ import LevelCard from '../components/dashboard/LevelCard';
 import StatusCard from '../components/dashboard/StatusCard';
 import LocationCard from '../components/dashboard/LocationCard';
 import LastUpdated from '../components/dashboard/LastUpdated';
+import PumpStateCard from '../components/dashboard/PumpStateCard';
+import PumpCurrentCard from '../components/dashboard/PumpCurrentCard';
 import StatusBadge from '../components/common/StatusBadge';
-import { formatDateTime } from '../utils/formatUtils';
+import { formatDateTime, formatCurrent } from '../utils/formatUtils';
+import { getPumpStateBadgeProps } from '../utils/statusUtils';
 import { ArrowLeft, History, Cpu, MapPin, RefreshCw } from 'lucide-react';
 
 const DeviceDetails = () => {
@@ -20,8 +23,8 @@ const DeviceDetails = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const loadData = useCallback(async () => {
-    setLoading(true);
+  const loadData = useCallback(async (isInitial = false) => {
+    if (isInitial) setLoading(true);
     setError(null);
     try {
       const [deviceData, readingsData] = await Promise.all([
@@ -34,12 +37,17 @@ const DeviceDetails = () => {
       console.error(`Error loading details for ${deviceId}:`, err);
       setError(err.message || 'Failed to load device details');
     } finally {
-      setLoading(false);
+      if (isInitial) setLoading(false);
     }
   }, [deviceId]);
 
   useEffect(() => {
-    loadData();
+    loadData(true);
+    // Polling every 15 seconds to automatically refresh telemetry & historical readings
+    const interval = setInterval(() => {
+      loadData(false);
+    }, 15000);
+    return () => clearInterval(interval);
   }, [loadData]);
 
   if (loading && !device) {
@@ -47,7 +55,7 @@ const DeviceDetails = () => {
   }
 
   if (error && !device) {
-    return <ErrorMessage message={error} onRetry={loadData} />;
+    return <ErrorMessage message={error} onRetry={() => loadData(true)} />;
   }
 
   if (!device) {
@@ -73,6 +81,9 @@ const DeviceDetails = () => {
 
   const trashLevel = latestReading?.trashLevel ?? 0;
   const waterLevel = latestReading?.innerBinWaterLevel ?? 0;
+  const pumpState = latestReading?.pumpState ?? null;
+  const motorCurrent1 = latestReading?.motorCurrent1 ?? null;
+  const motorCurrent2 = latestReading?.motorCurrent2 ?? null;
 
   return (
     <div className="space-y-8">
@@ -103,7 +114,7 @@ const DeviceDetails = () => {
           </div>
 
           <button
-            onClick={loadData}
+            onClick={() => loadData(false)}
             className="inline-flex items-center gap-2 px-4 py-2.5 bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold rounded-xl shadow-xs transition-all active:scale-95 self-start sm:self-auto"
           >
             <RefreshCw className="w-3.5 h-3.5" />
@@ -112,12 +123,19 @@ const DeviceDetails = () => {
         </div>
       </div>
 
-      {/* Grid of Key Telemetry Cards */}
+      {/* Grid of Key Telemetry Cards - Row 1 */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <LevelCard type="trash" level={trashLevel} />
         <LevelCard type="water" level={waterLevel} />
+        <PumpStateCard pumpState={pumpState} />
         <StatusCard status={status} lastSeen={lastSeen} />
-        <LastUpdated timestamp={lastSeen} onRefresh={loadData} isRefreshing={loading} />
+      </div>
+
+      {/* Grid of Key Telemetry Cards - Row 2 */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <PumpCurrentCard label="Pump 1 Current" value={motorCurrent1} subtext="Motor 1 Electrical Load" />
+        <PumpCurrentCard label="Pump 2 Current" value={motorCurrent2} subtext="Motor 2 Electrical Load" />
+        <LastUpdated timestamp={lastSeen} onRefresh={() => loadData(false)} isRefreshing={loading} />
       </div>
 
       {/* Location Details & History Table */}
@@ -151,26 +169,48 @@ const DeviceDetails = () => {
                     <th className="pb-3 px-3">Timestamp</th>
                     <th className="pb-3 px-3">Trash Level</th>
                     <th className="pb-3 px-3">Water Level</th>
+                    <th className="pb-3 px-3">Pump State</th>
+                    <th className="pb-3 px-3">Pump 1</th>
+                    <th className="pb-3 px-3">Pump 2</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {readings.map((r, idx) => (
-                    <tr key={r.id || idx} className="hover:bg-slate-50/80 transition-colors">
-                      <td className="py-2.5 px-3 text-slate-700 font-mono font-medium">
-                        {formatDateTime(r.timestamp)}
-                      </td>
-                      <td className="py-2.5 px-3 font-bold">
-                        <span className={r.trashLevel >= 80 ? 'text-rose-700' : r.trashLevel >= 50 ? 'text-amber-700' : 'text-teal-700'}>
-                          {r.trashLevel}%
-                        </span>
-                      </td>
-                      <td className="py-2.5 px-3 font-bold">
-                        <span className={r.innerBinWaterLevel >= 80 ? 'text-rose-700' : r.innerBinWaterLevel >= 50 ? 'text-amber-700' : 'text-teal-700'}>
-                          {r.innerBinWaterLevel}%
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
+                  {readings.map((r, idx) => {
+                    const pumpInfo = getPumpStateBadgeProps(r.pumpState);
+                    return (
+                      <tr key={r.id || idx} className="hover:bg-slate-50/80 transition-colors">
+                        <td className="py-2.5 px-3 text-slate-700 font-mono font-medium whitespace-nowrap">
+                          {formatDateTime(r.timestamp)}
+                        </td>
+                        <td className="py-2.5 px-3 font-bold">
+                          <span className={r.trashLevel >= 80 ? 'text-rose-700' : r.trashLevel >= 50 ? 'text-amber-700' : 'text-teal-700'}>
+                            {r.trashLevel != null ? `${r.trashLevel}%` : 'N/A'}
+                          </span>
+                        </td>
+                        <td className="py-2.5 px-3 font-bold">
+                          <span className={r.innerBinWaterLevel >= 80 ? 'text-rose-700' : r.innerBinWaterLevel >= 50 ? 'text-amber-700' : 'text-teal-700'}>
+                            {r.innerBinWaterLevel != null ? `${r.innerBinWaterLevel}%` : 'N/A'}
+                          </span>
+                        </td>
+                        <td className="py-2.5 px-3">
+                          {r.pumpState ? (
+                            <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-bold border ${pumpInfo.badgeClass}`}>
+                              <span className={`w-1.5 h-1.5 rounded-full ${pumpInfo.dotClass}`} />
+                              {pumpInfo.shortLabel}
+                            </span>
+                          ) : (
+                            <span className="text-slate-400 font-semibold">N/A</span>
+                          )}
+                        </td>
+                        <td className="py-2.5 px-3 font-mono font-semibold text-slate-700">
+                          {formatCurrent(r.motorCurrent1)}
+                        </td>
+                        <td className="py-2.5 px-3 font-mono font-semibold text-slate-700">
+                          {formatCurrent(r.motorCurrent2)}
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>

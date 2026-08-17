@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import StatusBadge from '../common/StatusBadge';
 import ProgressBar from '../common/ProgressBar';
 import { formatRelativeTime } from '../../utils/formatUtils';
+import { getPumpStateBadgeProps } from '../../utils/statusUtils';
 import { MapPin, ArrowRight, Trash2, Droplets } from 'lucide-react';
 
 const DeviceCard = ({ device }) => {
@@ -21,6 +22,8 @@ const DeviceCard = ({ device }) => {
 
   const trashLevel = latestReading?.trashLevel ?? 0;
   const waterLevel = latestReading?.innerBinWaterLevel ?? 0;
+  const pumpState = latestReading?.pumpState ?? null;
+  const pumpInfo = getPumpStateBadgeProps(pumpState);
 
   const handleCardClick = () => {
     navigate(`/dashboard/device/${deviceId}`);
@@ -63,6 +66,15 @@ const DeviceCard = ({ device }) => {
             </div>
             <ProgressBar value={waterLevel} size="sm" />
           </div>
+
+          {pumpState && (
+            <div className="pt-2 border-t border-slate-200/50 flex items-center justify-between text-[11px]">
+              <span className="text-slate-500 font-medium">Pump Mode</span>
+              <span className={`px-2 py-0.5 rounded-md font-bold text-[10px] border ${pumpInfo.badgeClass}`}>
+                {pumpInfo.shortLabel}
+              </span>
+            </div>
+          )}
         </div>
       </div>
 
