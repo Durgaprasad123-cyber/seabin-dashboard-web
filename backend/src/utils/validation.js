@@ -3,7 +3,18 @@
  */
 
 const validateDeviceData = (req, res, next) => {
-  const { deviceId, trashLevel, innerBinWaterLevel, city, locationName, latitude, longitude } = req.body;
+  const {
+    deviceId,
+    trashLevel,
+    innerBinWaterLevel,
+    city,
+    locationName,
+    latitude,
+    longitude,
+    pumpState,
+    motorCurrent1,
+    motorCurrent2,
+  } = req.body;
 
   if (!deviceId || typeof deviceId !== 'string' || deviceId.trim() === '') {
     return res.status(400).json({
@@ -42,10 +53,53 @@ const validateDeviceData = (req, res, next) => {
     });
   }
 
+  let sanitizedPumpState = null;
+  if (pumpState !== undefined && pumpState !== null) {
+    if (typeof pumpState !== 'string') {
+      return res.status(400).json({
+        success: false,
+        message: 'Validation Error: pumpState must be a string.',
+      });
+    }
+    const formattedPumpState = pumpState.trim().toUpperCase();
+    if (formattedPumpState !== 'COLLECTION' && formattedPumpState !== 'DRAINAGE') {
+      return res.status(400).json({
+        success: false,
+        message: 'Validation Error: pumpState must be either "COLLECTION" or "DRAINAGE".',
+      });
+    }
+    sanitizedPumpState = formattedPumpState;
+  }
+
+  let parsedMotorCurrent1 = 0;
+  if (motorCurrent1 !== undefined && motorCurrent1 !== null) {
+    if (isNaN(Number(motorCurrent1))) {
+      return res.status(400).json({
+        success: false,
+        message: 'Validation Error: motorCurrent1 must be a valid number.',
+      });
+    }
+    parsedMotorCurrent1 = Number(motorCurrent1);
+  }
+
+  let parsedMotorCurrent2 = 0;
+  if (motorCurrent2 !== undefined && motorCurrent2 !== null) {
+    if (isNaN(Number(motorCurrent2))) {
+      return res.status(400).json({
+        success: false,
+        message: 'Validation Error: motorCurrent2 must be a valid number.',
+      });
+    }
+    parsedMotorCurrent2 = Number(motorCurrent2);
+  }
+
   req.sanitizedData = {
     deviceId: deviceId.trim().toUpperCase(),
     trashLevel: Math.round(parsedTrashLevel),
     innerBinWaterLevel: Math.round(parsedWaterLevel),
+    pumpState: sanitizedPumpState,
+    motorCurrent1: parsedMotorCurrent1,
+    motorCurrent2: parsedMotorCurrent2,
     city: (city && typeof city === 'string' && city.trim()) ? city.trim() : 'Unknown City',
     locationName: (locationName && typeof locationName === 'string' && locationName.trim()) ? locationName.trim() : 'Unspecified Location',
     latitude: (latitude !== undefined && !isNaN(Number(latitude))) ? Number(latitude) : 0,

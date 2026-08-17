@@ -7,7 +7,18 @@ const { calculateStatus } = require('../utils/deviceStatus');
  * and inserts a historical sensor reading record.
  */
 const processTelemetryData = async (data) => {
-  const { deviceId, trashLevel, innerBinWaterLevel, city, locationName, latitude, longitude } = data;
+  const {
+    deviceId,
+    trashLevel,
+    innerBinWaterLevel,
+    pumpState,
+    motorCurrent1,
+    motorCurrent2,
+    city,
+    locationName,
+    latitude,
+    longitude,
+  } = data;
   const nowISO = new Date().toISOString();
 
   // 1. Check if device exists in `devices` table
@@ -73,6 +84,9 @@ const processTelemetryData = async (data) => {
       device_id: deviceId,
       trash_level: trashLevel,
       inner_bin_water_level: innerBinWaterLevel,
+      pump_state: pumpState,
+      motor_current1: motorCurrent1,
+      motor_current2: motorCurrent2,
       timestamp: nowISO,
     })
     .select()
@@ -99,6 +113,9 @@ const processTelemetryData = async (data) => {
       id: newReading.id,
       trashLevel: newReading.trash_level,
       innerBinWaterLevel: newReading.inner_bin_water_level,
+      pumpState: newReading.pump_state,
+      motorCurrent1: newReading.motor_current1,
+      motorCurrent2: newReading.motor_current2,
       timestamp: newReading.timestamp,
     },
   };
@@ -141,6 +158,9 @@ const getAllDevices = async () => {
         latestReadingMap[r.device_id] = {
           trashLevel: r.trash_level,
           innerBinWaterLevel: r.inner_bin_water_level,
+          pumpState: r.pump_state,
+          motorCurrent1: r.motor_current1,
+          motorCurrent2: r.motor_current2,
           timestamp: r.timestamp,
         };
       }
@@ -152,6 +172,9 @@ const getAllDevices = async () => {
     const reading = latestReadingMap[dev.device_id] || {
       trashLevel: 0,
       innerBinWaterLevel: 0,
+      pumpState: null,
+      motorCurrent1: 0,
+      motorCurrent2: 0,
       timestamp: dev.last_seen || dev.created_at,
     };
 
@@ -215,10 +238,16 @@ const getDeviceById = async (deviceId) => {
       id: reading.id,
       trashLevel: reading.trash_level,
       innerBinWaterLevel: reading.inner_bin_water_level,
+      pumpState: reading.pump_state,
+      motorCurrent1: reading.motor_current1,
+      motorCurrent2: reading.motor_current2,
       timestamp: reading.timestamp,
     } : {
       trashLevel: 0,
       innerBinWaterLevel: 0,
+      pumpState: null,
+      motorCurrent1: 0,
+      motorCurrent2: 0,
       timestamp: device.last_seen || device.created_at,
     },
   };
@@ -244,6 +273,9 @@ const getDeviceReadings = async (deviceId, limit = 50) => {
     deviceId: r.device_id,
     trashLevel: r.trash_level,
     innerBinWaterLevel: r.inner_bin_water_level,
+    pumpState: r.pump_state,
+    motorCurrent1: r.motor_current1,
+    motorCurrent2: r.motor_current2,
     timestamp: r.timestamp,
   }));
 };
